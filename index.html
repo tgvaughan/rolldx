@@ -60,6 +60,8 @@
   <script>
     var current_sum = 0;
 
+    const out = document.querySelector('#output');
+
     function roll(d) {
         return Math.ceil(Math.random()*d);
     }
@@ -69,8 +71,6 @@
             return false;
 
         var d = e.target.dataset.die*1;
-
-        const out = document.querySelector('#output');
 
         if (current_sum > 0)
             out.value += '+ ';
@@ -83,24 +83,19 @@
 
     function clear() {
         current_sum = 0;
-        document.querySelector('#output').value = '';
+        out.value = '';
     }
 
     function equals() {
         if (current_sum == 0)
             return false;
 
-        const out = document.querySelector('#output');
         out.value += '= ' + current_sum + '\n';
         current_sum = 0;
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log('loaded');
-
-        document.querySelector('#roll-buttons').addEventListener('click', roll_event);
-        document.querySelector('#clear').addEventListener('click', clear);
-        document.querySelector('#equals').addEventListener('click', equals);
-    });
+    document.querySelector('#roll-buttons').addEventListener('click', roll_event);
+    document.querySelector('#clear').addEventListener('click', clear);
+    document.querySelector('#equals').addEventListener('click', equals);
   </script>
 </html>
