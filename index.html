@@ -35,7 +35,7 @@
 
       textarea {
           text-align: center;
-          font-size: 2em;
+          font-size: 3em;
           width: 100%;
           height: 10em;
       }
@@ -56,6 +56,7 @@
     <button data-die="12">d12</button>
     <button data-die="20">d20</button>
     <button data-die="100">d&percnt;</button>
+    <button data-die="card">card</button>
     </div>
 
     <div id="controls">
@@ -97,16 +98,42 @@
     const out = document.querySelector('#output');
     const single_roll_checkbox = document.querySelector('#single-rolls');
 
-    function roll(d) {
-        return Math.ceil(Math.random()*d);
+    function roll_die(d) {
+        var result, result_display;
+        
+        if (d == "card") {
+            const card_idx = Math.floor(Math.random()*(52+2));
+
+            if (card_idx >= 52) {
+                result = 0;
+                result_display = String.fromCodePoint(0x1f0cf);
+            } else {
+                result = card_idx % 13 + 1;
+                const suit = Math.floor(card_idx / 13);
+
+                result_display = "";
+                if (result == 1)
+                    result_display += "A"
+                else if (result <= 10)
+                    result_display += result
+                else
+                    result_display += "JQK"[result-11]
+
+                result_display += "♥♦♣♠"[suit];
+            }
+        } else {
+            result = Math.ceil(Math.random()*(1.0*d));
+            result_display = result + '[d' + d + ']';
+        }
+
+        return [result, result_display];
     }
 
-    function roll_event(e) {
+    function roll(e) {
         if (e.target.tagName != "BUTTON")
-            return false;
+                return false;
 
-        var d = e.target.dataset.die*1;
-        var result = roll(d);
+        const [result, result_display] = roll_die(e.target.dataset.die);
 
         if (!single_roll_checkbox.checked) {
             if (current_sum > 0)
@@ -115,7 +142,7 @@
             current_sum += result;
         }
 
-        out.value += result + '[d' + d + ']';
+        out.value += result_display;
 
         if (single_roll_checkbox.checked)
             out.value += '\n';
@@ -144,7 +171,7 @@
             equals();
     }
 
-    document.querySelector('#roll-buttons').addEventListener('click', roll_event);
+    document.querySelector('#roll-buttons').addEventListener('click', roll);
     document.querySelector('#clear').addEventListener('click', clear);
     document.querySelector('#equals').addEventListener('click', equals);
     single_roll_checkbox.addEventListener('click', toggle_single_rolls);
