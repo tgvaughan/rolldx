@@ -10,42 +10,48 @@
 
 
     <style>
-      button {
-          font-size: 2em;
-      }
+     body {text-align: center;}
 
-      #roll-buttons {
-          max-width: 100%;
-      }
+     button {font-size: 2em;}
 
-      #controls {
-          margin-top: 1em;
-          max-width: 100%;
-      }
+     #roll-buttons {max-width: 100%;}
 
-      #controls > button {
-          padding-right: 1em;
-          padding-left: 1em;
-          margin-right: 1em;
-      }
+     #controls {
+         margin-top: 1em;
+         max-width: 100%;
+     }
 
-      body {
-          text-align: center;
-      }
+     #controls > button {
+         padding-right: 1em;
+         padding-left: 1em;
+         margin-right: 1em;
+     }
 
-      textarea {
-          text-align: center;
-          font-size: 3em;
-          width: 100%;
-          height: 10em;
-      }
+     #container {
+         background: white;
+         overflow-y: scroll;
+         border: solid 1px black;
+         width: 100%;
+     }
+
+     #output {
+         text-align: center;
+         font-size: 3em;
+         font-family: sans-serif;
+         height: 10em;
+     }
+
+     .red-card {color: red;}
+     .black-card {color: black;}
+     .die-spec {font-weight: lighter; color: grey;}
     </style>
 
   </head>
 
   <body>
-
-    <textarea id="output" readonly="true"></textarea>
+      <div id="container">
+          <div id="output"></div>
+      </div>
 
     <div id="roll-buttons">
     <button data-die="2">d2</button>
@@ -96,73 +102,81 @@
     var current_sum = 0;
 
     const out = document.querySelector('#output');
+    const container = document.querySelector('#container');
     const single_roll_checkbox = document.querySelector('#single-rolls');
 
     function roll_die(d) {
-        var result, result_display;
+        var result, result_el;
         
         if (d == "card") {
             const card_idx = Math.floor(Math.random()*(52+2));
 
             if (card_idx >= 52) {
                 result = 0;
-                result_display = String.fromCodePoint(0x1f0cf);
+                result_el = document.createTextNode(String.fromCodePoint(0x1f0cf));
             } else {
                 result = card_idx % 13 + 1;
                 const suit = Math.floor(card_idx / 13);
 
-                result_display = "";
+                result_el = document.createElement("span");
+                result_string = ""
                 if (result == 1)
-                    result_display += "A"
+                    result_string += "A"
                 else if (result <= 10)
-                    result_display += result
+                    result_string += result
                 else
-                    result_display += "JQK"[result-11]
+                    result_string += "JQK"[result-11]
 
-                result_display += "♥♦♣♠"[suit];
+                result_string += "♥♦♣♠"[suit];
+                result_el.appendChild(document.createTextNode(result_string));
+                result_el.className = suit<2 ? "red-card" : "black-card";
             }
         } else {
             result = Math.ceil(Math.random()*(1.0*d));
-            result_display = result + '[d' + d + ']';
+            result_el = document.createElement("span");
+            result_el.appendChild(document.createTextNode(result));
+            result_el.appendChild(document.createElement("span"));
+            result_el.lastChild.appendChild(document.createTextNode("[d" + d + "]"))
+            result_el.lastChild.className = "die-spec";
         }
 
-        return [result, result_display];
+        return [result, result_el];
     }
 
     function roll(e) {
         if (e.target.tagName != "BUTTON")
                 return false;
 
-        const [result, result_display] = roll_die(e.target.dataset.die);
+        const [result, result_el] = roll_die(e.target.dataset.die);
 
         if (!single_roll_checkbox.checked) {
             if (current_sum > 0)
-                out.value += '+ ';
+                out.appendChild(document.createTextNode("+ "));
 
             current_sum += result;
         }
 
-        out.value += result_display;
+        out.appendChild(result_el);
 
         if (single_roll_checkbox.checked)
-            out.value += '\n';
+            out.appendChild(document.createElement("br"));
         else
-            out.value += ' ';
+            out.appendChild(document.createTextNode(" "));
 
-        out.scrollTop = out.scrollHeight;
+        container.scrollTop = container.scrollHeight;
     }
 
     function clear() {
         current_sum = 0;
-        out.value = '';
+        out.replaceChildren();
     }
 
     function equals() {
         if (current_sum == 0)
             return false;
 
-        out.value += '= ' + current_sum + '\n';
-        out.scrollTop = out.scrollHeight;
+        out.appendChild(document.createTextNode("= " + current_sum));
+        out.appendChild(document.createElement("br"));
         current_sum = 0;
     }
 
